@@ -289,11 +289,15 @@ const UploadView = ({ onAddProduct }: { onAddProduct: (p: Product) => void }) =>
       data.mainProduct = 'Julaherb';
       setExtractedData(data);
     } catch (e: any) {
+      console.error("OCR Process Error:", e);
       const errorStr = JSON.stringify(e).toLowerCase();
-      if ((e.message && e.message.includes('400')) || errorStr.includes('api key not valid')) {
-        setErrorMessage("Invalid API Key. Please check your .env.local file.");
+
+      if (errorStr.includes('api key not valid') || errorStr.includes('api_key_invalid') || (e.message && e.message.includes('400'))) {
+        setErrorMessage("Invalid API Key. Please check if VITE_GEMINI_API_KEY is correct in .env.local or Vercel Environment Variables.");
+      } else if (errorStr.includes('429') || errorStr.includes('quota')) {
+        setErrorMessage("Server busy (Quota limit). Please wait a moment and try again.");
       } else {
-        setErrorMessage(errorStr.includes('429') ? "Server busy (Quota limit). Please wait a moment and try again." : `Extraction failed: ${e.message || "Screen capture error"}`);
+        setErrorMessage(`Processing Error: ${e.message || errorStr}`);
       }
     } finally {
       setIsUploading(false);
