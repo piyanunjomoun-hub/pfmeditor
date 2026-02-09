@@ -6,8 +6,8 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' }
 // List of models to try in order of preference (Stable -> Experimental)
 const MODELS = [
     "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
     "gemini-1.5-flash-8b",
-    "gemini-1.5-pro",
 ];
 
 /**
