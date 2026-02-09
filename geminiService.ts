@@ -1,13 +1,15 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
+const ai = new GoogleGenAI({
+    apiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+    apiVersion: 'v1'
+});
 
-// List of models to try in order of preference (Stable -> Experimental)
+// List of models to try in order of preference
 const MODELS = [
     "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
 ];
 
 /**
