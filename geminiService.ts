@@ -7,7 +7,7 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' }
  * Handles retries with exponential backoff.
  * Especially useful for 429 (Rate Limit) errors.
  */
-async function withRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries = 5, initialDelay = 5000): Promise<T> {
+async function withRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries = 3, initialDelay = 1000): Promise<T> {
   let lastError: any;
   for (let i = 0; i <= maxRetries; i++) {
     try {
@@ -25,6 +25,7 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries = 5,
         throw error;
       }
 
+      // 1s, 2s, 4s... much faster retry loop
       const delay = initialDelay * Math.pow(2, i);
       console.warn(`Quota reached. Retry ${i + 1}/${maxRetries} in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -36,7 +37,7 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries = 5,
 export const extractProductFromImage = async (base64Image: string) => {
   return withRetry(async () => {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       contents: [
         {
           role: "user",

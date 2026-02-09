@@ -294,7 +294,7 @@ const UploadView = ({ onAddProduct }: { onAddProduct: (p: Product) => void }) =>
       if ((e.message && e.message.includes('400')) || errorStr.includes('api key not valid')) {
         setErrorMessage("Invalid API Key. Please check your .env.local file.");
       } else {
-        setErrorMessage(errorStr.includes('429') ? "Server busy (Quota limit). Please wait 60s and try again." : `Extraction failed: ${e.message || "Screen capture error"}`);
+        setErrorMessage(errorStr.includes('429') ? "Server busy (Quota limit). Please wait a moment and try again." : `Extraction failed: ${e.message || "Screen capture error"}`);
       }
     } finally {
       setIsUploading(false);
