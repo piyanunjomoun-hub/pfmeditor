@@ -244,6 +244,31 @@ const UploadView = ({ onAddProduct }: { onAddProduct: (p: Product) => void }) =>
     return () => window.removeEventListener('paste', handlePaste);
   }, [extractedData]);
 
+  // Helper to resize image
+  const resizeImage = (base64Str: string, maxWidth = 1000): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        let canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Compress to JPEG 80%
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+    });
+  };
+
   const processImage = async () => {
     if (!imagePreview) return;
 
@@ -257,7 +282,10 @@ const UploadView = ({ onAddProduct }: { onAddProduct: (p: Product) => void }) =>
     setIsUploading(true);
     setErrorMessage(null);
     try {
-      const data = await extractProductFromImage(imagePreview);
+      // Optimize image before sending
+      const optimizedImage = await resizeImage(imagePreview);
+      const data = await extractProductFromImage(optimizedImage);
+
       if (data.tiktokId) data.permalink = `https://www.tiktok.com/@julaherbthailand/video/${data.tiktokId}`;
       data.mainProduct = 'Julaherb';
       setExtractedData(data);
