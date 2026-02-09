@@ -6,11 +6,8 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' }
 // List of models to try in order of preference (Stable -> Experimental)
 const MODELS = [
     "gemini-1.5-flash",
-    "gemini-1.5-flash-001",
-    "gemini-1.5-flash-002",
+    "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
-    "gemini-1.5-pro-001",
-    "gemini-2.0-flash-exp"
 ];
 
 /**
@@ -43,6 +40,7 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, maxRetries = 2,
 }
 
 export const extractProductFromImage = async (base64Image: string) => {
+    let primaryError: any = null; // Store the most meaningful error (e.g. 429)
     let lastError: any;
 
     for (const modelName of MODELS) {
@@ -104,6 +102,11 @@ export const extractProductFromImage = async (base64Image: string) => {
 
             console.warn(`Model ${modelName} failed: ${error.message || errorStr}`);
 
+            // Capture the first rate limit error as the primary error to report if all else fails
+            if (!primaryError && (errorStr.includes('429') || errorStr.includes('quota') || errorStr.includes('resource_exhausted'))) {
+                primaryError = error;
+            }
+
             // If Quota limit, wait a bit before trying the *next* model
             if (errorStr.includes('429') || errorStr.includes('quota') || errorStr.includes('resource_exhausted')) {
                 console.warn(`Quota hit on ${modelName}. Waiting 2s before trying next model...`);
@@ -116,5 +119,6 @@ export const extractProductFromImage = async (base64Image: string) => {
         }
     }
 
-    throw lastError || new Error("All available AI models are busy or failed. Please try again later.");
+    // Throw the primary error (likely 429) if it exists, otherwise the last error encountered
+    throw primaryError || lastError || new Error("All available AI models are busy or failed. Please try again later.");
 };
